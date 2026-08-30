@@ -26,6 +26,17 @@ const applicationSchema = new Schema(
       default: "pending",
     },
     coverLetter: { type: String, default: "" },
+    /**
+     * Snapshot of the resume as submitted. Stored per application rather than
+     * read from the student's profile so that replacing the profile resume
+     * later never rewrites what a company already received.
+     *
+     * Not `required` at the schema level: applications created before resumes
+     * were mandatory have none, and marking it required would make those old
+     * documents unsaveable on any later update (e.g. a status change).
+     */
+    resumeUrl: { type: String, default: "" },
+    resumeName: { type: String, default: "" },
     appliedAt: { type: Date, default: Date.now },
     notes: { type: String, default: "" },
   },

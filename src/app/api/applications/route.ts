@@ -7,6 +7,7 @@ import Application from "@/models/Application";
 import { getCurrentUser } from "@/lib/auth";
 import { applicationCreateSchema } from "@/lib/validators";
 import { forbidden, unauthorized, badRequest, notFound } from "@/lib/http";
+import { isOwnUploadUrl } from "@/lib/cloudinary-upload";
 
 export async function GET(request: NextRequest) {
   await connectDB();
@@ -69,9 +70,14 @@ export async function POST(request: Request) {
     return badRequest("Validation failed", parsed.error.flatten());
   }
 
-  const { jobId, coverLetter } = parsed.data;
+  const { jobId, coverLetter, resumeUrl, resumeName } = parsed.data;
 
   if (!mongoose.Types.ObjectId.isValid(jobId)) return badRequest("Invalid job");
+
+  // The URL is client-supplied, so confirm it is this student's own upload.
+  if (!isOwnUploadUrl(resumeUrl, String(user._id))) {
+    return badRequest("Attach a resume you uploaded through this site");
+  }
 
   const job = await Job.findById(jobId).lean();
   if (!job || job.status !== "open") return notFound("Job not available");
@@ -92,6 +98,8 @@ export async function POST(request: Request) {
       student: user._id,
       company: job.company,
       coverLetter: coverLetter ?? "",
+      resumeUrl,
+      resumeName: resumeName ?? "",
       status: "pending",
       appliedAt: new Date(),
     });

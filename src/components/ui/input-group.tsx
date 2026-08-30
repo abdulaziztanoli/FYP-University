@@ -114,10 +114,13 @@ function InputGroupText({ className, ...props }: React.ComponentProps<"span">) {
   )
 }
 
+// Mirrors `Input`'s own props rather than raw `<input>` props: `Input` replaces
+// the native numeric `size` attribute with a CVA variant, so passing
+// ComponentProps<"input"> straight through collides on that one key.
 function InputGroupInput({
   className,
   ...props
-}: React.ComponentProps<"input">) {
+}: React.ComponentProps<typeof Input>) {
   return (
     <Input
       data-slot="input-group-control"

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import {
   AUTH_CARD_CLASS,
@@ -98,16 +99,25 @@ export default function LoginPage() {
               id="email"
               type="email"
               autoComplete="email"
+              placeholder="you@example.com"
               size="auth"
               {...form.register("email")}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="password">Password</Label>
+              <Link
+                href="/forgot-password"
+                className="text-muted-foreground hover:text-foreground text-sm transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+            <PasswordInput
               id="password"
-              type="password"
               autoComplete="current-password"
+              placeholder="Enter your password"
               size="auth"
               {...form.register("password")}
             />

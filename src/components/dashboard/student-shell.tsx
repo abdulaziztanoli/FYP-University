@@ -1,8 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { Briefcase, FileText, LayoutDashboard, User } from "lucide-react";
+import {
+  Briefcase,
+  FileText,
+  LayoutDashboard,
+  MessagesSquare,
+  User,
+} from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { UnreadBadge } from "@/components/chat/unread-badge";
 
 const navItems = [
   {
@@ -19,6 +26,12 @@ const navItems = [
     href: "/student/applications",
     label: "Applications",
     icon: <FileText className="size-4" />,
+  },
+  {
+    href: "/student/messages",
+    label: "Messages",
+    icon: <MessagesSquare className="size-4" />,
+    badge: <UnreadBadge />,
   },
   {
     href: "/student/profile",

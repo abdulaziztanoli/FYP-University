@@ -26,7 +26,9 @@ import { swrFetcher } from "@/lib/swr-fetcher";
 import { jobCreateSchema } from "@/lib/validators";
 import type { z } from "zod";
 
-type FormShape = z.infer<typeof jobCreateSchema>;
+/** Input vs output types — see the note in the register page. */
+type FormInput = z.input<typeof jobCreateSchema>;
+type FormShape = z.output<typeof jobCreateSchema>;
 
 export default function EditCompanyJobPage() {
   const params = useParams();
@@ -40,7 +42,7 @@ export default function EditCompanyJobPage() {
 
   const job = data?.job;
 
-  const form = useForm<FormShape>({
+  const form = useForm<FormInput, unknown, FormShape>({
     resolver: zodResolver(jobCreateSchema),
   });
 
@@ -154,11 +156,18 @@ export default function EditCompanyJobPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Title</Label>
-            <Input {...form.register("title")} />
+            <Input
+              placeholder="e.g. Frontend Engineer Intern"
+              {...form.register("title")}
+            />
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea rows={6} {...form.register("description")} />
+            <Textarea
+              rows={6}
+              placeholder="What is the role about? Team, mission, and what makes it exciting."
+              {...form.register("description")}
+            />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -198,7 +207,10 @@ export default function EditCompanyJobPage() {
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label>Location</Label>
-              <Input {...form.register("location")} />
+              <Input
+                placeholder="City, region, or country"
+                {...form.register("location")}
+              />
             </div>
             <div className="flex items-center gap-2 pt-6">
               <Checkbox
@@ -214,6 +226,8 @@ export default function EditCompanyJobPage() {
               <Label>Salary min</Label>
               <Input
                 type="number"
+                min={0}
+                placeholder="e.g. 60000"
                 {...form.register("salary.min", { valueAsNumber: true })}
               />
             </div>
@@ -221,27 +235,47 @@ export default function EditCompanyJobPage() {
               <Label>Salary max</Label>
               <Input
                 type="number"
+                min={0}
+                placeholder="e.g. 90000"
                 {...form.register("salary.max", { valueAsNumber: true })}
               />
             </div>
             <div className="space-y-2">
               <Label>Currency</Label>
-              <Input {...form.register("salary.currency")} />
+              <Input
+                placeholder="USD"
+                maxLength={8}
+                {...form.register("salary.currency")}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label>Skills (comma-separated)</Label>
-            <Input value={skillsText} onChange={(e) => setSkillsText(e.target.value)} />
+            <Input
+              placeholder="React, TypeScript, Node.js"
+              value={skillsText}
+              onChange={(e) => setSkillsText(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label>Requirements (one per line)</Label>
-            <Textarea rows={4} value={reqText} onChange={(e) => setReqText(e.target.value)} />
+            <Textarea
+              rows={4}
+              placeholder={"Bachelor's in CS or related\n2+ years with React\nEligible to work in …"}
+              value={reqText}
+              onChange={(e) => setReqText(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label>Responsibilities (one per line)</Label>
-            <Textarea rows={4} value={respText} onChange={(e) => setRespText(e.target.value)} />
+            <Textarea
+              rows={4}
+              placeholder={"Ship features with the web team\nReview PRs and mentor interns\nPartner with design on UI …"}
+              value={respText}
+              onChange={(e) => setRespText(e.target.value)}
+            />
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
@@ -258,6 +292,7 @@ export default function EditCompanyJobPage() {
               <Input
                 type="number"
                 min={1}
+                placeholder="e.g. 3"
                 {...form.register("positions", { valueAsNumber: true })}
               />
             </div>

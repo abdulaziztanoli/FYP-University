@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Separator } from "@/components/ui/separator";
 import {
   AUTH_CARD_CLASS,
@@ -32,12 +33,19 @@ import {
 import { registerSchema } from "@/lib/validators";
 import type { z } from "zod";
 
-type FormValues = z.infer<typeof registerSchema>;
+/**
+ * zod v4 splits a schema's input and output types: `z.coerce.number()` accepts
+ * `unknown` going in and yields `number` coming out. react-hook-form needs both
+ * — the field values it holds are the input type, what `handleSubmit` receives
+ * is the output type.
+ */
+type FormInput = z.input<typeof registerSchema>;
+type FormValues = z.output<typeof registerSchema>;
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const form = useForm<FormValues>({
+  const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
@@ -110,31 +118,39 @@ export default function RegisterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="name">Full name</Label>
-            <Input id="name" size="auth" {...form.register("name")} />
+            <Input
+              id="name"
+              placeholder="e.g. Alex Morgan"
+              size="auth"
+              {...form.register("name")}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
+              placeholder="you@example.com"
               size="auth"
               {...form.register("email")}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
               size="auth"
               {...form.register("password")}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
+              autoComplete="new-password"
+              placeholder="Re-enter your password"
               size="auth"
               {...form.register("confirmPassword")}
             />
@@ -146,19 +162,26 @@ export default function RegisterPage() {
                 <Label htmlFor="university">University</Label>
                 <Input
                   id="university"
+                  placeholder="e.g. University of Karachi"
                   size="auth"
                   {...form.register("university")}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="degree">Degree</Label>
-                <Input id="degree" size="auth" {...form.register("degree")} />
+                <Input
+                  id="degree"
+                  placeholder="e.g. BS Computer Science"
+                  size="auth"
+                  {...form.register("degree")}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="graduationYear">Graduation year</Label>
                 <Input
                   id="graduationYear"
                   type="number"
+                  placeholder="e.g. 2027"
                   size="auth"
                   {...form.register("graduationYear", { valueAsNumber: true })}
                 />
@@ -172,6 +195,7 @@ export default function RegisterPage() {
                 <Label htmlFor="companyName">Company name</Label>
                 <Input
                   id="companyName"
+                  placeholder="e.g. Northwind Technologies"
                   size="auth"
                   {...form.register("companyName")}
                 />
@@ -180,13 +204,19 @@ export default function RegisterPage() {
                 <Label htmlFor="industry">Industry</Label>
                 <Input
                   id="industry"
+                  placeholder="e.g. Software & IT Services"
                   size="auth"
                   {...form.register("industry")}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
-                <Input id="website" size="auth" {...form.register("website")} />
+                <Input
+                  id="website"
+                  placeholder="https://example.com"
+                  size="auth"
+                  {...form.register("website")}
+                />
               </div>
             </>
           )}

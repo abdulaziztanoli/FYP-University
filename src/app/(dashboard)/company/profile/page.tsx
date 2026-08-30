@@ -36,7 +36,9 @@ const schema = z.object({
   phone: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof schema>;
+/** Input vs output types — see the note in the register page. */
+type FormInput = z.input<typeof schema>;
+type FormValues = z.output<typeof schema>;
 
 export default function CompanyProfilePage() {
   const hydrateUser = useAuthStore((s) => s.hydrateUser);
@@ -50,7 +52,7 @@ export default function CompanyProfilePage() {
 
   const [uploadingLogo, setUploadingLogo] = React.useState(false);
 
-  const form = useForm<FormValues>({
+  const form = useForm<FormInput, unknown, FormValues>({
     resolver: zodResolver(schema),
     values: user
       ? {
@@ -68,8 +70,10 @@ export default function CompanyProfilePage() {
       : undefined,
   });
 
+  // `companyName` is optional in the schema, so it can be undefined before the
+  // profile loads — the old `.trim()` here crashed on that.
   const displayHeading =
-    form.watch("companyName").trim() || String(user?.name ?? "Company");
+    form.watch("companyName")?.trim() || String(user?.name ?? "Company");
   const email = String(user?.email ?? "");
 
   async function uploadLogo(file: File) {
@@ -189,49 +193,88 @@ export default function CompanyProfilePage() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <Label>Account name</Label>
-            <Input className="rounded-lg" {...form.register("name")} />
+            <Input
+              className="rounded-lg"
+              placeholder="Name shown on your account"
+              {...form.register("name")}
+            />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
               <Label>Company name</Label>
-              <Input className="rounded-lg" {...form.register("companyName")} />
+              <Input
+                className="rounded-lg"
+                placeholder="e.g. Northwind Technologies"
+                {...form.register("companyName")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Industry</Label>
-              <Input className="rounded-lg" {...form.register("industry")} />
+              <Input
+                className="rounded-lg"
+                placeholder="e.g. Software & IT Services"
+                {...form.register("industry")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Website</Label>
-              <Input className="rounded-lg" {...form.register("website")} />
+              <Input
+                className="rounded-lg"
+                placeholder="https://example.com"
+                {...form.register("website")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Location</Label>
-              <Input className="rounded-lg" {...form.register("location")} />
+              <Input
+                className="rounded-lg"
+                placeholder="e.g. Karachi, Pakistan"
+                {...form.register("location")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Founded year</Label>
               <Input
                 type="number"
                 className="rounded-lg"
+                placeholder="e.g. 2015"
                 {...form.register("foundedYear", { valueAsNumber: true })}
               />
             </div>
             <div className="space-y-2">
               <Label>Employee count</Label>
-              <Input className="rounded-lg" {...form.register("employeeCount")} />
+              <Input
+                className="rounded-lg"
+                placeholder="e.g. 51-200"
+                {...form.register("employeeCount")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Contact email</Label>
-              <Input className="rounded-lg" {...form.register("contactEmail")} />
+              <Input
+                type="email"
+                className="rounded-lg"
+                placeholder="careers@example.com"
+                {...form.register("contactEmail")}
+              />
             </div>
             <div className="space-y-2">
               <Label>Phone</Label>
-              <Input className="rounded-lg" {...form.register("phone")} />
+              <Input
+                className="rounded-lg"
+                placeholder="e.g. +92 21 1234567"
+                {...form.register("phone")}
+              />
             </div>
           </div>
           <div className="space-y-2">
             <Label>Description</Label>
-            <Textarea rows={5} className="min-h-[120px] rounded-lg" {...form.register("description")} />
+            <Textarea
+              rows={5}
+              className="min-h-[120px] rounded-lg"
+              placeholder="What your company does, the team students would join, and what makes it a good place to start a career."
+              {...form.register("description")}
+            />
           </div>
 
           <ProfileSaveBar submitLabel="Save profile" loading={form.formState.isSubmitting} icon={Save} />

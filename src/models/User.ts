@@ -57,6 +57,9 @@ const userSchema = new Schema(
       default: "pending",
     },
     isApproved: { type: Boolean, default: false },
+    /** SHA-256 of the emailed reset token — never the token itself. */
+    resetTokenHash: { type: String, select: false },
+    resetTokenExpiresAt: { type: Date, select: false },
     studentProfile: { type: studentProfileSchema, default: {} },
     companyProfile: { type: companyProfileSchema, default: {} },
   },
@@ -65,6 +68,7 @@ const userSchema = new Schema(
 
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1, status: 1 });
+userSchema.index({ resetTokenHash: 1 }, { sparse: true });
 
 export type UserDocument = InferSchemaType<typeof userSchema> & {
   _id: mongoose.Types.ObjectId;

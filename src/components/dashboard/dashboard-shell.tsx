@@ -31,7 +31,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
 
-export type NavItem = { href: string; label: string; icon: React.ReactNode };
+export type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+  /** Optional trailing slot, e.g. a live unread count. */
+  badge?: React.ReactNode;
+};
 
 /** Picks the single most specific nav href that matches (avoids /jobs and /jobs/new both active). */
 function getActiveNavHref(items: NavItem[], pathname: string): string | null {
@@ -80,9 +86,11 @@ function NavLinks({
               {item.icon}
             </span>
             <span className="truncate">{item.label}</span>
-            {active && (
+            {item.badge ? (
+              <span className="ml-auto flex items-center">{item.badge}</span>
+            ) : active ? (
               <ChevronRight className="ml-auto size-3.5 opacity-60" />
-            )}
+            ) : null}
           </Link>
         );
       })}

@@ -315,6 +315,7 @@ export default function NewCompanyJobPage() {
                   id="salary-min"
                   type="number"
                   min={0}
+                  placeholder="e.g. 60000"
                   {...form.register("salary.min", { valueAsNumber: true })}
                 />
               </div>
@@ -324,6 +325,7 @@ export default function NewCompanyJobPage() {
                   id="salary-max"
                   type="number"
                   min={0}
+                  placeholder="e.g. 90000"
                   {...form.register("salary.max", { valueAsNumber: true })}
                 />
               </div>
@@ -411,6 +413,7 @@ export default function NewCompanyJobPage() {
                   id="job-positions"
                   type="number"
                   min={1}
+                  placeholder="e.g. 3"
                   {...form.register("positions", { valueAsNumber: true })}
                 />
               </div>

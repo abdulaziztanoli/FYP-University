@@ -13,11 +13,13 @@ import {
   FileText,
   GraduationCap,
   Link2,
+  Loader2,
   MapPin,
   Phone,
   Save,
   Share2,
   Sparkles,
+  Trash2,
   User,
   X,
 } from "lucide-react";
@@ -81,6 +83,7 @@ export default function StudentProfilePage() {
   const sp = (user?.studentProfile ?? {}) as Record<string, unknown>;
   const [skills, setSkills] = React.useState<string[]>([]);
   const [uploading, setUploading] = React.useState<null | "photo" | "resume">(null);
+  const [removingResume, setRemovingResume] = React.useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema) as unknown as Resolver<FormValues>,
@@ -120,6 +123,31 @@ export default function StudentProfilePage() {
     const body = await res.json();
     if (!res.ok) throw new Error(body.error ?? "Upload failed");
     return body.url as string;
+  }
+
+  /**
+   * Clears the profile pointer only. The file itself stays on Cloudinary
+   * because applications already submitted may reference the same URL —
+   * deleting the asset would break the copy a company received.
+   */
+  async function removeResume() {
+    setRemovingResume(true);
+    try {
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ studentProfile: { resumeUrl: "" } }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+      toast.success("Resume removed");
+      await mutate();
+      await hydrateUser();
+    } catch {
+      toast.error("Could not remove resume");
+    } finally {
+      setRemovingResume(false);
+    }
   }
 
   async function onSubmit(values: FormValues) {
@@ -227,9 +255,9 @@ export default function StudentProfilePage() {
               icon={FileText}
               title="Resume"
               description="PDF only · Used when you apply to jobs."
-              actionLabel="Upload PDF"
+              actionLabel={resumeUrl ? "Replace PDF" : "Upload PDF"}
               accept="application/pdf"
-              disabled={uploading !== null}
+              disabled={uploading !== null || removingResume}
               uploading={uploading === "resume"}
               onFile={async (f) => {
                 setUploading("resume");
@@ -254,15 +282,30 @@ export default function StudentProfilePage() {
               }}
               footer={
                 resumeUrl ? (
-                  <a
-                    href={resumeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex w-fit items-center gap-1 text-[11px] font-medium text-primary hover:underline"
-                  >
-                    <FileText className="size-3" />
-                    View current resume
-                  </a>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <a
+                      href={resumeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex w-fit items-center gap-1 text-[11px] font-medium text-primary hover:underline"
+                    >
+                      <FileText className="size-3" />
+                      View current resume
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => void removeResume()}
+                      disabled={removingResume || uploading !== null}
+                      className="inline-flex w-fit cursor-pointer items-center gap-1 text-[11px] font-medium text-muted-foreground transition-colors hover:text-destructive disabled:pointer-events-none disabled:opacity-60"
+                    >
+                      {removingResume ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-3" />
+                      )}
+                      {removingResume ? "Removing…" : "Remove"}
+                    </button>
+                  </div>
                 ) : null
               }
             />
@@ -283,7 +326,12 @@ export default function StudentProfilePage() {
             >
               Full name
             </Label>
-            <Input id="name" className="rounded-lg" {...form.register("name")} />
+            <Input
+              id="name"
+              className="rounded-lg"
+              placeholder="e.g. Alex Morgan"
+              {...form.register("name")}
+            />
           </div>
 
           <Separator />
@@ -296,21 +344,34 @@ export default function StudentProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>University</Label>
-                <Input className="rounded-lg" {...form.register("university")} />
+                <Input
+                  className="rounded-lg"
+                  placeholder="e.g. University of Karachi"
+                  {...form.register("university")}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Degree</Label>
-                <Input className="rounded-lg" {...form.register("degree")} />
+                <Input
+                  className="rounded-lg"
+                  placeholder="e.g. BS Computer Science"
+                  {...form.register("degree")}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Major</Label>
-                <Input className="rounded-lg" {...form.register("major")} />
+                <Input
+                  className="rounded-lg"
+                  placeholder="e.g. Software Engineering"
+                  {...form.register("major")}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Graduation year</Label>
                 <Input
                   type="number"
                   className="rounded-lg"
+                  placeholder="e.g. 2027"
                   {...form.register("graduationYear", { valueAsNumber: true })}
                 />
               </div>
@@ -320,6 +381,7 @@ export default function StudentProfilePage() {
                   type="number"
                   step="0.01"
                   className="rounded-lg"
+                  placeholder="e.g. 3.45"
                   {...form.register("gpa", { valueAsNumber: true })}
                 />
               </div>
@@ -328,7 +390,11 @@ export default function StudentProfilePage() {
                   <MapPin className="size-3.5 text-muted-foreground" />
                   Location
                 </Label>
-                <Input className="rounded-lg" {...form.register("location")} />
+                <Input
+                  className="rounded-lg"
+                  placeholder="e.g. Karachi, Pakistan"
+                  {...form.register("location")}
+                />
               </div>
             </div>
           </ProfileSection>
@@ -363,7 +429,7 @@ export default function StudentProfilePage() {
                 </Label>
                 <Input
                   className="rounded-lg"
-                  placeholder="https://"
+                  placeholder="https://linkedin.com/in/username"
                   {...form.register("linkedIn")}
                 />
               </div>
@@ -374,7 +440,7 @@ export default function StudentProfilePage() {
                 </Label>
                 <Input
                   className="rounded-lg"
-                  placeholder="https://"
+                  placeholder="https://github.com/username"
                   {...form.register("github")}
                 />
               </div>
@@ -383,7 +449,11 @@ export default function StudentProfilePage() {
                   <Phone className="size-3.5 text-muted-foreground" />
                   Phone
                 </Label>
-                <Input className="rounded-lg" {...form.register("phone")} />
+                <Input
+                  className="rounded-lg"
+                  placeholder="e.g. +92 300 1234567"
+                  {...form.register("phone")}
+                />
               </div>
             </div>
           </ProfileSection>

@@ -36,14 +36,21 @@ import {
 import { swrFetcher } from "@/lib/swr-fetcher";
 import { applicationStatusBadgeClass } from "@/lib/status-styles";
 import { cn } from "@/lib/utils";
+import { MessageButton } from "@/components/chat/message-button";
 
 type Row = {
   _id: string;
   status: string;
   appliedAt: string;
   coverLetter?: string;
+  resumeUrl?: string;
+  resumeName?: string;
   job?: { _id?: string; title?: string };
-  company?: { companyProfile?: { companyName?: string }; name?: string };
+  company?: {
+    _id?: string;
+    companyProfile?: { companyName?: string };
+    name?: string;
+  };
 };
 
 function StatCard({
@@ -291,6 +298,29 @@ export default function StudentApplicationsPage() {
 
             <div>
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Resume sent
+              </p>
+              {detail?.resumeUrl ? (
+                <a
+                  href={detail.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-primary"
+                >
+                  <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {detail.resumeName?.trim() || "Open resume"}
+                  </span>
+                </a>
+              ) : (
+                <p className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+                  This application was submitted before resumes were required.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Cover letter
               </p>
               <div className="max-h-[min(50vh,320px)] overflow-y-auto rounded-lg border border-border/60 bg-muted/30 p-4">
@@ -300,13 +330,24 @@ export default function StudentApplicationsPage() {
               </div>
             </div>
 
-            {detail?.job?._id ? (
-              <Button variant="outline" className="w-full" asChild>
-                <Link href={`/student/jobs/${detail.job._id}`}>
-                  View job listing
-                </Link>
-              </Button>
-            ) : null}
+            <div className="grid gap-2 sm:grid-cols-2">
+              {detail?.job?._id ? (
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href={`/student/jobs/${detail.job._id}`}>
+                    View job listing
+                  </Link>
+                </Button>
+              ) : null}
+              {detail?.company?._id ? (
+                <MessageButton
+                  peerId={detail.company._id}
+                  role="student"
+                  label="Message company"
+                  size="default"
+                  className="w-full"
+                />
+              ) : null}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

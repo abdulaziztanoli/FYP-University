@@ -65,6 +65,21 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().min(1),
+    password: z.string().min(8).max(128),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 const jobFields = z.object({
   title: z.string().min(2).max(200),
   description: z.string().min(10),
@@ -94,6 +109,9 @@ export const jobUpdateSchema = jobFields.partial();
 export const applicationCreateSchema = z.object({
   jobId: z.string().min(1),
   coverLetter: z.string().max(8000).optional().default(""),
+  /** Required — every application must carry the resume it was sent with. */
+  resumeUrl: z.string().min(1, "A resume is required to apply").max(2000),
+  resumeName: z.string().max(255).optional().default(""),
 });
 
 export const applicationUpdateSchema = z.object({
@@ -110,6 +128,16 @@ export const adminUserUpdateSchema = z.object({
 export const adminBulkSchema = z.object({
   ids: z.array(z.string().min(1)).min(1),
   action: z.enum(["approve", "block"]),
+});
+
+export const conversationCreateSchema = z.object({
+  peerId: z.string().min(1),
+});
+
+export const messageCreateSchema = z.object({
+  body: z.string().trim().min(1, "Message cannot be empty").max(4000),
+  /** Echoed back so the client can reconcile its optimistic bubble. */
+  clientId: z.string().max(64).optional(),
 });
 
 const studentProfileUpdate = z.object({

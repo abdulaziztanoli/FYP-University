@@ -28,6 +28,12 @@ type ApplicationRow = {
   job?: { title?: string };
 };
 
+type RecommendedJob = {
+  _id?: string;
+  title?: string;
+  company?: { name?: string };
+};
+
 export default function StudentDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const skills = (
@@ -42,7 +48,7 @@ export default function StudentDashboardPage() {
 
   const { data: recData, isLoading: recLoading } = useSWR(
     skills.length ? `/api/jobs?limit=6${skillsParam}` : "/api/jobs?limit=6",
-    swrFetcher<{ jobs: unknown[] }>
+    swrFetcher<{ jobs: RecommendedJob[] }>
   );
 
   const applications = appsData?.applications ?? [];
@@ -244,7 +250,7 @@ export default function StudentDashboardPage() {
             ) : (
               <ul className="divide-y divide-border/50">
                 {recommended.map(
-                  (job: { _id?: string; title?: string; company?: { name?: string } }) => (
+                  (job) => (
                     <li
                       key={job._id}
                       className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"

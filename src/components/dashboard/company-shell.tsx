@@ -4,10 +4,12 @@ import * as React from "react";
 import {
   Briefcase,
   LayoutDashboard,
+  MessagesSquare,
   PlusCircle,
   User,
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { UnreadBadge } from "@/components/chat/unread-badge";
 
 const navItems = [
   {
@@ -24,6 +26,12 @@ const navItems = [
     href: "/company/jobs/new",
     label: "Post job",
     icon: <PlusCircle className="size-4" />,
+  },
+  {
+    href: "/company/messages",
+    label: "Messages",
+    icon: <MessagesSquare className="size-4" />,
+    badge: <UnreadBadge />,
   },
   {
     href: "/company/profile",

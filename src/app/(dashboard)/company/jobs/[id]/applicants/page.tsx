@@ -48,6 +48,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { swrFetcher } from "@/lib/swr-fetcher";
+import { MessageButton } from "@/components/chat/message-button";
 import { applicationStatusBadgeClass } from "@/lib/status-styles";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +65,9 @@ type AppRow = {
   appliedAt: string;
   notes?: string;
   coverLetter?: string;
+  /** Snapshot taken at submit time; absent on pre-requirement applications. */
+  resumeUrl?: string;
+  resumeName?: string;
   student?: StudentPop;
 };
 
@@ -128,6 +132,10 @@ export default function JobApplicantsPage() {
   }
 
   const sp = (sheet?.student?.studentProfile ?? {}) as Record<string, unknown>;
+  // Prefer what was actually submitted; fall back to the profile copy only for
+  // applications created before a resume was required.
+  const submittedResumeUrl =
+    sheet?.resumeUrl?.trim() || String(sp.resumeUrl ?? "").trim();
   const skillsList = ((sp.skills as string[] | undefined) ?? []).filter(Boolean);
   const studentInitial =
     sheet?.student?.name?.slice(0, 2).toUpperCase() ?? "??";
@@ -259,6 +267,15 @@ export default function JobApplicantsPage() {
                       </span>
                     ) : null}
                   </div>
+                  {sheet?.student?._id ? (
+                    <div className="mt-3">
+                      <MessageButton
+                        peerId={sheet.student._id}
+                        role="company"
+                        label="Message applicant"
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </SheetHeader>
@@ -320,6 +337,32 @@ export default function JobApplicantsPage() {
               </ApplicantSection>
             ) : null}
 
+            <ApplicantSection icon={FileText} label="Resume">
+              {submittedResumeUrl ? (
+                <a
+                  href={submittedResumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 text-sm transition-colors hover:bg-muted hover:text-primary"
+                >
+                  <FileText className="size-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {sheet?.resumeName?.trim() || "Open resume"}
+                  </span>
+                  {!sheet?.resumeUrl ? (
+                    <span className="shrink-0 text-[11px] text-muted-foreground">
+                      from profile
+                    </span>
+                  ) : null}
+                  <Globe className="size-3 shrink-0 text-muted-foreground/60" />
+                </a>
+              ) : (
+                <p className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5 text-sm text-muted-foreground">
+                  No resume on file for this application.
+                </p>
+              )}
+            </ApplicantSection>
+
             <ApplicantSection icon={FileText} label="Cover letter">
               <p className="whitespace-pre-wrap rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-sm leading-relaxed text-muted-foreground">
                 {sheet?.coverLetter?.trim() || "No cover letter provided."}
@@ -328,7 +371,6 @@ export default function JobApplicantsPage() {
 
             {(sp.location as string) ||
             (sp.phone as string) ||
-            (sp.resumeUrl as string) ||
             (sp.linkedIn as string) ||
             (sp.github as string) ? (
               <ApplicantSection icon={Globe} label="Links & contact">
@@ -346,18 +388,6 @@ export default function JobApplicantsPage() {
                     >
                       <Phone className="size-3.5 shrink-0 text-muted-foreground" />
                       <span>{String(sp.phone)}</span>
-                    </a>
-                  ) : null}
-                  {(sp.resumeUrl as string) ? (
-                    <a
-                      href={String(sp.resumeUrl)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm transition-colors hover:bg-muted hover:text-primary"
-                    >
-                      <FileText className="size-3.5 shrink-0 text-muted-foreground" />
-                      <span>Open resume</span>
-                      <Globe className="ml-auto size-3 text-muted-foreground/60" />
                     </a>
                   ) : null}
                   {(sp.linkedIn as string) ? (

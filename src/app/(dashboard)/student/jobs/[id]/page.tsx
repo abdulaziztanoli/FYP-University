@@ -35,6 +35,11 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { swrFetcher } from "@/lib/swr-fetcher";
+import { useAuthStore } from "@/stores/auth-store";
+import {
+  ResumePicker,
+  type ResumeSelection,
+} from "@/components/applications/resume-picker";
 import { cn } from "@/lib/utils";
 
 type JobDetail = {
@@ -112,6 +117,8 @@ export default function StudentJobDetailPage() {
     swrFetcher<{ applications: { job?: { _id?: string }; _id: string }[] }>
   );
 
+  const storedUser = useAuthStore((s) => s.user);
+
   const job = data?.job;
   const applications = appsData?.applications ?? [];
   const applied = applications.some((a) => {
@@ -123,17 +130,32 @@ export default function StudentJobDetailPage() {
   });
 
   const [coverLetter, setCoverLetter] = React.useState("");
+  const [resume, setResume] = React.useState<ResumeSelection>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
 
+  const profileResumeUrl = String(
+    (storedUser?.studentProfile as { resumeUrl?: string } | undefined)
+      ?.resumeUrl ?? ""
+  );
+
   async function submitApplication() {
+    if (!resume) {
+      toast.error("Attach a resume before submitting.");
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch("/api/applications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ jobId: id, coverLetter }),
+        body: JSON.stringify({
+          jobId: id,
+          coverLetter,
+          resumeUrl: resume.url,
+          resumeName: resume.name,
+        }),
       });
       const body = await res.json();
       if (!res.ok) {
@@ -143,6 +165,7 @@ export default function StudentJobDetailPage() {
       toast.success("Application submitted");
       setOpen(false);
       setCoverLetter("");
+      setResume(null);
       await mutateApps();
       router.refresh();
     } finally {
@@ -232,16 +255,24 @@ export default function StudentJobDetailPage() {
                         Add a short cover letter. Employers see this with your profile.
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-2 py-4">
-                      <Label htmlFor="cover">Cover letter</Label>
-                      <Textarea
-                        id="cover"
-                        rows={8}
-                        className="min-h-[180px] resize-y"
-                        value={coverLetter}
-                        onChange={(e) => setCoverLetter(e.target.value)}
-                        placeholder="Introduce yourself, relevant experience, and why you want this role…"
+                    <div className="space-y-4 py-4">
+                      <ResumePicker
+                        profileResumeUrl={profileResumeUrl}
+                        value={resume}
+                        onChange={setResume}
+                        disabled={submitting}
                       />
+                      <div className="space-y-2">
+                        <Label htmlFor="cover">Cover letter</Label>
+                        <Textarea
+                          id="cover"
+                          rows={7}
+                          className="min-h-[150px] resize-y"
+                          value={coverLetter}
+                          onChange={(e) => setCoverLetter(e.target.value)}
+                          placeholder="Introduce yourself, relevant experience, and why you want this role…"
+                        />
+                      </div>
                     </div>
                     <DialogFooter className="gap-2 sm:gap-0">
                       <Button variant="outline" onClick={() => setOpen(false)}>
@@ -249,6 +280,7 @@ export default function StudentJobDetailPage() {
                       </Button>
                       <Button
                         loading={submitting}
+                        disabled={!resume}
                         onClick={() => void submitApplication()}
                       >
                         Submit application
