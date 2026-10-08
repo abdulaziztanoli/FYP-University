@@ -20,7 +20,6 @@ type PopulatedCompany = {
   _id: mongoose.Types.ObjectId;
   role?: string;
   status?: string;
-  isApproved?: boolean;
 };
 
 export async function GET(_request: NextRequest, ctx: Ctx) {
@@ -32,7 +31,7 @@ export async function GET(_request: NextRequest, ctx: Ctx) {
   if (!mongoose.Types.ObjectId.isValid(id)) return badRequest("Invalid job id");
 
   const job = await Job.findById(id)
-    .populate("company", "name email companyProfile status isApproved role")
+    .populate("company", "name email companyProfile status role")
     .lean();
 
   if (!job) return notFound("Job not found");
@@ -53,7 +52,6 @@ export async function GET(_request: NextRequest, ctx: Ctx) {
       job.status === "open" &&
       company &&
       company.role === "company" &&
-      company.isApproved === true &&
       company.status === "active";
     if (!ok) return forbidden();
     return NextResponse.json({ job });

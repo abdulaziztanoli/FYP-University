@@ -76,7 +76,7 @@ export default function RegisterPage() {
         toast.error(data.error ?? "Registration failed");
         return;
       }
-      toast.success("Your account is pending admin approval");
+      toast.success("Account created. You can sign in now.");
       router.push("/login");
     } catch {
       toast.error("Something went wrong.");
@@ -92,7 +92,7 @@ export default function RegisterPage() {
             Create account
           </CardTitle>
           <CardDescription className="text-muted-foreground text-sm">
-            Students and companies join after admin approval.
+            Join as a student or a company.
           </CardDescription>
         </div>
       </CardHeader>

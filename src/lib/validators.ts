@@ -122,12 +122,12 @@ export const applicationUpdateSchema = z.object({
 });
 
 export const adminUserUpdateSchema = z.object({
-  action: z.enum(["approve", "block", "unblock"]),
+  action: z.enum(["block", "unblock"]),
 });
 
 export const adminBulkSchema = z.object({
   ids: z.array(z.string().min(1)).min(1),
-  action: z.enum(["approve", "block"]),
+  action: z.enum(["block"]),
 });
 
 export const conversationCreateSchema = z.object({

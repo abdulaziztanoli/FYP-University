@@ -17,21 +17,14 @@ export async function PATCH(request: Request) {
     return badRequest("Validation failed", parsed.error.flatten());
   }
 
-  const { ids, action } = parsed.data;
+  const { ids } = parsed.data;
   const objectIds = ids.filter((id) => mongoose.Types.ObjectId.isValid(id)).map(
     (id) => new mongoose.Types.ObjectId(id)
   );
 
   if (objectIds.length === 0) return badRequest("No valid ids");
 
-  if (action === "approve") {
-    await User.updateMany(
-      { _id: { $in: objectIds } },
-      { $set: { isApproved: true, status: "active" } }
-    );
-  } else {
-    await User.updateMany({ _id: { $in: objectIds } }, { $set: { status: "blocked" } });
-  }
+  await User.updateMany({ _id: { $in: objectIds } }, { $set: { status: "blocked" } });
 
   return NextResponse.json({ ok: true, affected: objectIds.length });
 }

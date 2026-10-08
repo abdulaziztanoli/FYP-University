@@ -17,7 +17,7 @@ export async function fetchUsersList(request: NextRequest) {
   if (roleParam && ["student", "company", "admin"].includes(roleParam)) {
     filter.role = roleParam;
   }
-  if (statusParam && ["pending", "active", "blocked"].includes(statusParam)) {
+  if (statusParam && ["active", "blocked"].includes(statusParam)) {
     filter.status = statusParam;
   }
 

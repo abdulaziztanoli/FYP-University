@@ -37,14 +37,13 @@ export async function GET(request: NextRequest) {
       baseFilter.status = statusFilter;
     }
   } else if (user.role === "student") {
-    const approvedCompanies = await User.find({
+    const activeCompanies = await User.find({
       role: "company",
       status: "active",
-      isApproved: true,
     })
       .select("_id")
       .lean();
-    const ids = approvedCompanies.map((c) => c._id);
+    const ids = activeCompanies.map((c) => c._id);
     baseFilter.status = "open";
     baseFilter.company = { $in: ids };
   } else if (user.role === "admin") {
@@ -96,7 +95,7 @@ export async function GET(request: NextRequest) {
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
-      .populate("company", "name email companyProfile status isApproved role")
+      .populate("company", "name email companyProfile status role")
       .lean(),
     Job.countDocuments(filter),
   ]);

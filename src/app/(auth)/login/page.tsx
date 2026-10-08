@@ -50,11 +50,9 @@ export default function LoginPage() {
 
       if (!res.ok) {
         const msg =
-          data.code === "PENDING"
-            ? "Account pending approval by admin."
-            : data.code === "BLOCKED"
-              ? "Your account has been blocked. Contact admin."
-              : data.error ?? "Could not sign in.";
+          data.code === "BLOCKED"
+            ? "Your account has been blocked. Contact admin."
+            : data.error ?? "Could not sign in.";
         toast.error(msg);
         return;
       }

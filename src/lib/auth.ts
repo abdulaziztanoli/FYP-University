@@ -25,7 +25,6 @@ export async function getSessionFromCookies(): Promise<SessionPayload | null> {
     sub: v.sub,
     role: v.role,
     status: v.status,
-    isApproved: v.isApproved,
     email: v.email,
     name: v.name,
   };

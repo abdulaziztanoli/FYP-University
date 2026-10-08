@@ -77,9 +77,7 @@ export default function AdminUsersPage() {
   const [selected, setSelected] = React.useState<Record<string, boolean>>({});
   const [detail, setDetail] = React.useState<UserRow | null>(null);
   const [pendingPatch, setPendingPatch] = React.useState<string | null>(null);
-  const [bulkLoading, setBulkLoading] = React.useState<
-    null | "approve" | "block"
-  >(null);
+  const [bulkLoading, setBulkLoading] = React.useState(false);
 
   React.useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 300);
@@ -112,10 +110,7 @@ export default function AdminUsersPage() {
     setSelected(next);
   }
 
-  async function patchUser(
-    id: string,
-    action: "approve" | "block" | "unblock"
-  ) {
+  async function patchUser(id: string, action: "block" | "unblock") {
     const k = `${id}:${action}`;
     setPendingPatch(k);
     try {
@@ -135,16 +130,16 @@ export default function AdminUsersPage() {
     }
   }
 
-  async function bulk(action: "approve" | "block") {
+  async function bulkBlock() {
     const ids = Object.keys(selected).filter((id) => selected[id]);
     if (!ids.length) return;
-    setBulkLoading(action);
+    setBulkLoading(true);
     try {
       const res = await fetch("/api/admin/users/bulk", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ ids, action }),
+        body: JSON.stringify({ ids, action: "block" }),
       });
       if (!res.ok) toast.error("Bulk action failed");
       else {
@@ -153,7 +148,7 @@ export default function AdminUsersPage() {
         await mutate();
       }
     } finally {
-      setBulkLoading(null);
+      setBulkLoading(false);
     }
   }
 
@@ -178,7 +173,7 @@ export default function AdminUsersPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">User management</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Search, filter, approve, or block user accounts.
+          Search, filter, or block user accounts.
         </p>
       </div>
 
@@ -235,7 +230,6 @@ export default function AdminUsersPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="blocked">Blocked</SelectItem>
               </SelectContent>
@@ -249,19 +243,10 @@ export default function AdminUsersPage() {
                 </span>
                 <Button
                   size="sm"
-                  className="h-7 gap-1 text-xs"
-                  loading={bulkLoading === "approve"}
-                  onClick={() => void bulk("approve")}
-                >
-                  <ShieldCheck className="size-3.5" />
-                  Approve
-                </Button>
-                <Button
-                  size="sm"
                   variant="destructive"
                   className="h-7 gap-1 text-xs"
-                  loading={bulkLoading === "block"}
-                  onClick={() => void bulk("block")}
+                  loading={bulkLoading}
+                  onClick={() => void bulkBlock()}
                 >
                   <Ban className="size-3.5" />
                   Block
@@ -372,16 +357,6 @@ export default function AdminUsersPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center justify-end gap-1.5">
-                      {u.status === "pending" && (
-                        <Button
-                          size="sm"
-                          className="h-7 text-xs"
-                          loading={pendingPatch === `${u._id}:approve`}
-                          onClick={() => void patchUser(u._id, "approve")}
-                        >
-                          Approve
-                        </Button>
-                      )}
                       {u.status !== "blocked" ? (
                         <Button
                           size="sm"

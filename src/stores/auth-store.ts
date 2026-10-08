@@ -8,7 +8,6 @@ export type AuthUser = {
   email: string;
   role: "student" | "company" | "admin";
   status: string;
-  isApproved: boolean;
   studentProfile?: Record<string, unknown>;
   companyProfile?: Record<string, unknown>;
   createdAt?: string;

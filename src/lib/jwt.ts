@@ -5,7 +5,6 @@ export interface SessionPayload {
   sub: string;
   role: "student" | "company" | "admin";
   status: string;
-  isApproved: boolean;
   email: string;
   name: string;
 }
@@ -22,7 +21,6 @@ export async function signSessionToken(payload: SessionPayload) {
   return new SignJWT({
     role: payload.role,
     status: payload.status,
-    isApproved: payload.isApproved,
     email: payload.email,
     name: payload.name,
   })
@@ -42,11 +40,10 @@ export async function verifySessionToken(token: string) {
     if (!sub || typeof sub !== "string") return null;
     const role = payload.role as SessionPayload["role"];
     const status = payload.status as string;
-    const isApproved = Boolean(payload.isApproved);
     const email = String(payload.email ?? "");
     const name = String(payload.name ?? "");
     if (!["student", "company", "admin"].includes(role)) return null;
-    return { sub, role, status, isApproved, email, name };
+    return { sub, role, status, email, name };
   } catch {
     return null;
   }

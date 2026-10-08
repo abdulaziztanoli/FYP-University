@@ -87,9 +87,9 @@ export async function POST(request: Request) {
   const role = user.role as ChatRole;
   const viewerId = String(user._id);
 
-  const peer = await User.findById(peerId).select("role status isApproved").lean();
+  const peer = await User.findById(peerId).select("role status").lean();
   if (!peer) return badRequest("Peer not found");
-  if (peer.status !== "active" || !peer.isApproved) {
+  if (peer.status !== "active") {
     return badRequest("That account is not active");
   }
 

@@ -34,8 +34,7 @@ export async function POST(request: Request) {
       email: data.email.toLowerCase().trim(),
       password: hashed,
       role: data.role,
-      status: "pending",
-      isApproved: false,
+      status: "active",
       studentProfile:
         data.role === "student"
           ? {
@@ -72,7 +71,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({
-      message: "Your account is pending admin approval",
+      message: "Account created. You can sign in now.",
       user: serializeUser(userDoc),
     });
   } catch (e) {

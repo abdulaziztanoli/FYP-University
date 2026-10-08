@@ -53,10 +53,9 @@ const userSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "active", "blocked"],
-      default: "pending",
+      enum: ["active", "blocked"],
+      default: "active",
     },
-    isApproved: { type: Boolean, default: false },
     /** SHA-256 of the emailed reset token — never the token itself. */
     resetTokenHash: { type: String, select: false },
     resetTokenExpiresAt: { type: Date, select: false },

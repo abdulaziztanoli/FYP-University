@@ -27,10 +27,6 @@ export async function PUT(request: Request, ctx: Ctx) {
   if (!target) return notFound("User not found");
 
   switch (parsed.data.action) {
-    case "approve":
-      target.isApproved = true;
-      target.status = "active";
-      break;
     case "block":
       target.status = "blocked";
       break;

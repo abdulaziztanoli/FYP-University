@@ -86,7 +86,6 @@ export async function POST(request: Request) {
   if (
     !companyUser ||
     companyUser.role !== "company" ||
-    !companyUser.isApproved ||
     companyUser.status !== "active"
   ) {
     return forbidden();

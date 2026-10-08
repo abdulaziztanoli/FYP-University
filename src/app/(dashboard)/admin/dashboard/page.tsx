@@ -2,15 +2,12 @@
 
 import * as React from "react";
 import useSWR from "swr";
-import { toast } from "sonner";
 import {
   Users,
-  Clock,
   GraduationCap,
   Building2,
   Briefcase,
   FileText,
-  CheckCircle2,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,10 +22,6 @@ import { cn } from "@/lib/utils";
 export default function AdminDashboardPage() {
   const { data: usersAll, isLoading: u1 } = useSWR(
     "/api/admin/users?page=1&limit=1",
-    swrFetcher<{ pagination: { total: number } }>
-  );
-  const { data: pending, isLoading: u2 } = useSWR(
-    "/api/admin/users?status=pending&page=1&limit=1",
     swrFetcher<{ pagination: { total: number } }>
   );
   const { data: students, isLoading: u3 } = useSWR(
@@ -48,7 +41,7 @@ export default function AdminDashboardPage() {
     swrFetcher<{ total?: number }>
   );
 
-  const loading = u1 || u2 || u3 || u4 || j1 || a1;
+  const loading = u1 || u3 || u4 || j1 || a1;
 
   const { data: recentUsers } = useSWR(
     "/api/admin/users?page=1&limit=8",
@@ -64,35 +57,6 @@ export default function AdminDashboardPage() {
     }>
   );
 
-  const { data: pendingList, mutate: mutatePending } = useSWR(
-    "/api/admin/users?status=pending&page=1&limit=8",
-    swrFetcher<{
-      users: { _id: string; name: string; email: string; role: string }[];
-    }>
-  );
-
-  const [approvingId, setApprovingId] = React.useState<string | null>(null);
-
-  async function approve(id: string) {
-    setApprovingId(id);
-    try {
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ action: "approve" }),
-      });
-      if (!res.ok) {
-        toast.error("Approval failed");
-        return;
-      }
-      toast.success("User approved");
-      await mutatePending();
-    } finally {
-      setApprovingId(null);
-    }
-  }
-
   const metrics = [
     {
       title: "Total users",
@@ -100,13 +64,6 @@ export default function AdminDashboardPage() {
       icon: Users,
       color: "text-blue-600 dark:text-blue-400",
       bg: "bg-blue-100 dark:bg-blue-900/30",
-    },
-    {
-      title: "Pending approval",
-      value: pending?.pagination.total,
-      icon: Clock,
-      color: "text-amber-600 dark:text-amber-400",
-      bg: "bg-amber-100 dark:bg-amber-900/30",
     },
     {
       title: "Students",
@@ -151,7 +108,7 @@ export default function AdminDashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Platform overview, recent signups, and pending approvals.
+            Platform overview and recent signups.
           </p>
         </div>
         <Button asChild>
@@ -163,121 +120,62 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Metric grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {metrics.map((m) => (
           <MetricCard key={m.title} {...m} loading={loading} />
         ))}
       </div>
 
-      {/* Two-column panels */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Recent signups */}
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b border-border/50 pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
-                  <Users className="size-3.5 text-blue-600 dark:text-blue-400" />
-                </span>
-                Recent signups
-              </CardTitle>
-              <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground">
-                <Link href="/admin/users">View all</Link>
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            {!recentUsers?.users?.length ? (
-              <p className="px-4 py-6 text-center text-sm text-muted-foreground">
-                No users yet.
-              </p>
-            ) : (
-              <ul className="divide-y divide-border/50">
-                {recentUsers.users.map((u) => (
-                  <li
-                    key={u._id}
-                    className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
-                  >
-                    <Avatar className="size-8 shrink-0">
-                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
-                        {u.name?.slice(0, 2).toUpperCase() ?? "??"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{u.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">{u.email}</p>
-                    </div>
-                    <span
-                      className={cn(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize",
-                        roleColors[u.role] ?? "bg-muted text-muted-foreground"
-                      )}
-                    >
-                      {u.role}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Pending approvals */}
-        <Card className="overflow-hidden">
-          <CardHeader className="border-b border-border/50 pb-4">
+      {/* Recent signups */}
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b border-border/50 pb-4">
+          <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-100 dark:bg-amber-900/30">
-                <Clock className="size-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
+                <Users className="size-3.5 text-blue-600 dark:text-blue-400" />
               </span>
-              Pending approvals
-              {pendingList?.users?.length ? (
-                <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">
-                  {pendingList.users.length}
-                </span>
-              ) : null}
+              Recent signups
             </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            {!pendingList?.users?.length ? (
-              <div className="flex flex-col items-center gap-2 px-4 py-8 text-center">
-                <CheckCircle2 className="size-8 text-emerald-500 opacity-70" />
-                <p className="text-sm font-medium text-muted-foreground">
-                  Queue is clear!
-                </p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-border/50">
-                {pendingList.users.map((u) => (
-                  <li
-                    key={u._id}
-                    className="flex items-center gap-3 px-4 py-3"
+            <Button variant="ghost" size="sm" asChild className="h-7 text-xs text-muted-foreground">
+              <Link href="/admin/users">View all</Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {!recentUsers?.users?.length ? (
+            <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+              No users yet.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border/50">
+              {recentUsers.users.map((u) => (
+                <li
+                  key={u._id}
+                  className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40"
+                >
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+                      {u.name?.slice(0, 2).toUpperCase() ?? "??"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{u.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">{u.email}</p>
+                  </div>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold capitalize",
+                      roleColors[u.role] ?? "bg-muted text-muted-foreground"
+                    )}
                   >
-                    <Avatar className="size-8 shrink-0">
-                      <AvatarFallback className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold">
-                        {u.name?.slice(0, 2).toUpperCase() ?? "??"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{u.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {u.email} · <span className="capitalize">{u.role}</span>
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="h-7 shrink-0 text-xs"
-                      loading={approvingId === u._id}
-                      onClick={() => void approve(u._id)}
-                    >
-                      Approve
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                    {u.role}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -49,21 +49,10 @@ export async function POST(request: Request) {
       );
     }
 
-    if (user.status === "pending" || !user.isApproved) {
-      return NextResponse.json(
-        {
-          code: "PENDING",
-          error: "Account pending approval by admin",
-        },
-        { status: 403 }
-      );
-    }
-
     const token = await signSessionToken({
       sub: user._id.toString(),
       role: user.role as "student" | "company" | "admin",
       status: user.status,
-      isApproved: user.isApproved,
       email: user.email,
       name: user.name,
     });

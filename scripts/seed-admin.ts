@@ -35,7 +35,6 @@ async function load() {
     password: hashed,
     role: "admin",
     status: "active",
-    isApproved: true,
     studentProfile: {},
     companyProfile: {},
   });
